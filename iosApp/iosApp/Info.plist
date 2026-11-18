@@ -4,6 +4,8 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>CFBundleDisplayName</key>
+	<string>Nuvio CarPlay</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
@@ -50,13 +52,6 @@
 			</array>
 		</dict>
 	</array>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Nuvio connects to media servers on your local network.</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>infuse</string>
@@ -64,15 +59,63 @@
 		<string>outplayer</string>
 		<string>open-vidhub</string>
 	</array>
-	<key>UILaunchScreen</key>
-	<dict/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Nuvio connects to media servers on your local network.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<true/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>CPTemplateApplicationSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>CPTemplateApplicationScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>Nuvio CarPlay</string>
+					<key>UISceneDelegateClassName</key>
+					<string>NuvioCarPlayTemplateDelegate</string>
+				</dict>
+			</array>
+			<key>UIWindowSceneSessionRoleCarPlay</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UIWindowScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>Nuvio CarPlay Window</string>
+					<key>UISceneDelegateClassName</key>
+					<string>NuvioCarPlayWindowDelegate</string>
+				</dict>
+			</array>
+			<key>UIWindowSceneSessionRoleExternalDisplayNonInteractive</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UIWindowScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>Nuvio CarPlay Window</string>
+					<key>UISceneDelegateClassName</key>
+					<string>NuvioCarPlayWindowDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<false/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
 	</array>
-	<key>NSSupportsLiveActivities</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<false/>
+	<key>UILaunchScreen</key>
+	<dict/>
 </dict>
 </plist>

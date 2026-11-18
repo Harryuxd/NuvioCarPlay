@@ -1,3 +1,5 @@
+> **Nuvio CarPlay** — an unofficial fork of [NuvioMobile](https://github.com/NuvioMedia/NuvioMobile) that adds experimental Apple CarPlay video support (approach adapted from [YouDash](https://github.com/sa4hnd/YouDash)). See [iosApp/CARPLAY.md](iosApp/CARPLAY.md) for requirements and build steps. Not affiliated with the Nuvio team.
+
 <div align="center">
 
   <img src="https://nuvio.tv/assets/nuvio-app-logo-wordmark.webp" alt="Nuvio" width="320" />

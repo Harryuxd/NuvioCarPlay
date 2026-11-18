@@ -4,3 +4,11 @@ TEAM_ID=
 
 PRODUCT_NAME=Nuvio
 PRODUCT_BUNDLE_IDENTIFIER=com.nuvio.app.Nuvio$(TEAM_ID)
+// CarPlay video (opt-in). Only enable when your provisioning profile grants
+// com.apple.developer.carplay-video; otherwise signing fails. Enable with:
+//   NUVIO_CARPLAY_ENTITLEMENTS=Configuration/NuvioCarPlay.entitlements
+// (or pass it on the xcodebuild command line). Empty = no entitlements file.
+NUVIO_CARPLAY_ENTITLEMENTS=
+// Applied to the .app only, never the widget extension or test bundle.
+NUVIO_CARPLAY_ENTITLEMENTS__app=$(NUVIO_CARPLAY_ENTITLEMENTS)
+CODE_SIGN_ENTITLEMENTS=$(NUVIO_CARPLAY_ENTITLEMENTS__$(WRAPPER_EXTENSION))

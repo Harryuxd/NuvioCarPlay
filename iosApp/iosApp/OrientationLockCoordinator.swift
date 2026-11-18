@@ -1,3 +1,4 @@
+import SwiftUI
 import UIKit
 import UserNotifications
 import ComposeApp
@@ -12,6 +13,9 @@ final class OrientationLockAppDelegate: NSObject, UIApplicationDelegate, UNUserN
     ) -> Bool {
         OrientationLockCoordinator.shared.start()
         DownloadsLiveActivityManager.shared.start()
+        NuvioCarPlaySurface.shared.makeStandaloneRoot = {
+            UIHostingController(rootView: ContentView().preferredColorScheme(.dark))
+        }
         UNUserNotificationCenter.current().delegate = self
         return true
     }
@@ -89,10 +93,13 @@ final class OrientationLockCoordinator {
     }
 
     private func requestOrientationUpdate(for mask: UIInterfaceOrientationMask, forceRotate: Bool) {
+        // While Nuvio is on CarPlay the phone only shows a placeholder; don't rotate it.
+        if NuvioCarPlaySurface.isPresentingOnCar { return }
         if #available(iOS 16.0, *) {
             let preferences = UIWindowScene.GeometryPreferences.iOS(interfaceOrientations: mask)
             UIApplication.shared.connectedScenes
                 .compactMap { $0 as? UIWindowScene }
+                .filter { !nuvioIsCarRole($0.session.role) }
                 .forEach { scene in
                     scene.requestGeometryUpdate(preferences) { error in
                         print("[OrientationLockCoordinator] Geometry update failed: \(error.localizedDescription)")
