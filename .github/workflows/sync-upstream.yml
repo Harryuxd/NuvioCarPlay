@@ -1,0 +1,92 @@
+# Nuvio CarPlay: pull in upstream Nuvio updates once a day.
+# Merges NuvioMedia/NuvioMobile@cmp-rewrite into this fork's `carplay` branch.
+# If the merge conflicts or can't be pushed, nothing is changed and an issue
+# labelled `sync-conflict` is opened so it can be resolved by hand.
+name: Sync upstream Nuvio
+
+on:
+  schedule:
+    - cron: "17 6 * * *" # daily, 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository != 'NuvioMedia/NuvioMobile'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: carplay
+          fetch-depth: 0
+
+      - name: Merge upstream into carplay
+        id: merge
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/NuvioMedia/NuvioMobile.git
+          git fetch --no-tags upstream cmp-rewrite
+
+          # Keep this fork's cmp-rewrite as a plain mirror of upstream (best effort).
+          git push origin refs/remotes/upstream/cmp-rewrite:refs/heads/cmp-rewrite --force || \
+            echo "::warning::Could not mirror cmp-rewrite (upstream may have changed workflow files)."
+
+          if git merge-base --is-ancestor upstream/cmp-rewrite HEAD; then
+            echo "Already up to date with upstream."
+            exit 0
+          fi
+
+          upstream_sha=$(git rev-parse --short upstream/cmp-rewrite)
+          echo "upstream_sha=$upstream_sha" >> "$GITHUB_OUTPUT"
+
+          if ! git merge --no-edit -m "Merge upstream Nuvio ($upstream_sha) into carplay" upstream/cmp-rewrite; then
+            {
+              echo "reason=merge-conflict"
+              echo "files<<EOF"
+              git diff --name-only --diff-filter=U
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            git merge --abort
+            exit 0
+          fi
+
+          if ! git push origin HEAD:carplay; then
+            # Usually means upstream touched .github/workflows, which the
+            # default GITHUB_TOKEN is not allowed to push.
+            echo "reason=push-rejected" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Merged upstream $upstream_sha into carplay."
+
+      - name: Open an issue if manual sync is needed
+        if: steps.merge.outputs.reason != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REASON: ${{ steps.merge.outputs.reason }}
+          FILES: ${{ steps.merge.outputs.files }}
+          SHA: ${{ steps.merge.outputs.upstream_sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label sync-conflict --json number -q '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "Still blocked at upstream \`$SHA\` ($REASON). Run: $RUN_URL"
+            exit 0
+          fi
+          gh label create sync-conflict --repo "$GITHUB_REPOSITORY" --color B60205 \
+            --description "Upstream Nuvio update needs a manual merge" --force
+          if [ "$REASON" = "merge-conflict" ]; then
+            detail=$(printf 'These files conflict with the CarPlay changes:\n\n```\n%s\n```' "$FILES")
+          else
+            detail="The merge succeeded locally but GitHub refused the push, most likely because upstream changed files in \`.github/workflows\`, which the automatic token can't push."
+          fi
+          gh issue create --repo "$GITHUB_REPOSITORY" --label sync-conflict \
+            --title "Upstream Nuvio update ($SHA) needs a manual merge" \
+            --body "$(printf '%s\n\nTo fix it locally:\n\n```bash\ngit checkout carplay\ngit pull origin carplay\ngit fetch upstream\ngit merge upstream/cmp-rewrite   # resolve any conflicts, then commit\ngit push origin carplay\n```\n\nThis issue is reused until it is closed. Workflow run: %s' "$detail" "$RUN_URL")"
