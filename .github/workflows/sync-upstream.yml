@@ -22,7 +22,7 @@ jobs:
     if: github.repository != 'NuvioMedia/NuvioMobile'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: carplay
           fetch-depth: 0
